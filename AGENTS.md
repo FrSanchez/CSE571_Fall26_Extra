@@ -1,29 +1,50 @@
 # Repository Guidelines
 
-## Project Structure & Module Organization
+## Project Scope & Structure
 
-This directory currently contains `CSE571_Fall26.pdf`. It has no source modules, test suite, asset directories, or build configuration. Keep the PDF at the root and preserve its filename unless a change is explicitly requested.
+`fall_agent` (author: **team awesome**) is a CSE 571 evidence-seeking web research agent, currently a Hello World scaffold.
 
-When adding coursework, group related files by assignment or topic, for example `assignments/assignment_01/`. Keep supporting assets with the work that uses them. Introduce shared `src/` or `tests/` directories only when the project needs them, and document new directories in a README.
+- [CSE571_Fall26.md](CSE571_Fall26.md) is the authoritative specification; preserve the original PDF at the root.
+- [PROJECT.md](PROJECT.md) defines the three-week, four-person plan, technical ownership, and progress measures.
+- [README.md](README.md) provides setup and usage instructions; keep it concise.
+- `agent.py` contains the installable top-level `Agent` class and `main()` launcher.
+- `src/` is intentionally empty. Do not recreate `src/fall_agent/` without an agreed layout change.
+- `tests/test_agent.py` instantiates `Agent` using `from agent import Agent`.
 
-## Build, Test, and Development Commands
+Future implementation must follow the specification: six questions in one bounded domain, adaptive research, retrieved-page evidence, claim verification, citations, budgets, traces, and baseline comparison. These capabilities are not implemented yet.
 
-No build, test, lint, or local server commands are configured. Do not assume that `npm test`, `make build`, or similar commands apply.
+## Configuration & Dependencies
 
-Use `ls -la` to inspect the directory and `rg --files` to list files. If executable code is introduced, document its prerequisites, dependency installation, run command, and test command alongside that code before relying on those workflows.
+Use Python 3.11+. `pyproject.toml` centralizes setuptools packaging, metadata, runtime dependencies, dev extras, pytest, and tox. Keep this configuration consolidated; no `tox.ini` or requirements files are needed.
 
-## Coding Style & Naming Conventions
+Runtime dependencies are `torch` and `scikit-learn`. Dev extras include build, pytest, pytest-cov, Ruff, and tox >=4.21.2. Ruff settings remain in `ruff.toml`.
 
-Use descriptive filenames and consistent naming within each assignment. For new directories and scripts, prefer lowercase names with underscores, such as `assignment_01` or `search_demo.py`. Preserve supplied course-material filenames.
+## Setup, Run & Build
 
-Use Markdown headings and short, actionable paragraphs for documentation. No language-specific indentation standard, formatter, or linter is configured; establish and document those conventions when introducing a language.
+Use a dedicated virtual environment from the repository root:
 
-## Testing Guidelines
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev]"
+python agent.py                 # Print Hello, world!
+python -m pytest               # Run tests
+python -m tox                  # Run py, ruff, and unit-tests
+python -m tox -e unit-tests     # Tests with agent coverage
+python -m tox -e format         # Apply Ruff formatting
+python -m build                # Wheel and source archive in dist/
+```
 
-No testing framework or coverage threshold exists. Verify documentation links and paths, and confirm that added or replaced PDFs open correctly. For future code, add tests for expected behavior and edge cases, describe how to run them, and follow the selected framework’s naming conventions.
+Windows PowerShell activation: `.venv\Scripts\Activate.ps1`. Python requires no manual compilation before running.
 
-## Commit & Pull Request Guidelines
+## Coding Style & Testing
 
-This directory is not currently a Git repository, so no commit-message conventions can be inferred. If version control is introduced, use concise, imperative messages such as `Add assignment 01 notes`.
+Use four-space indentation, type annotations, `snake_case` functions/files, and `PascalCase` classes. Ruff configures 120-character lines and E, F, ANN rules; preserve its existing exclusions. The tox Ruff environment checks lint and formatting.
 
-Pull requests should explain the purpose, list affected assignments or documents, and describe validation performed. Link relevant issues when available; include screenshots only when they clarify a visual change.
+Use pytest with `tests/test_*.py` files and `test_*` functions. Coverage targets `agent`, not empty `src/`, and produces terminal, HTML, and XML reports. No coverage threshold is configured.
+
+## Agent Workflow & Contribution Rules
+
+Ask whether the user wants you to run checks or will run them themselves before executing tests, tox, formatting, builds, dependency installation, or the application. Avoid colliding with their active processes. Report checks actually performed and those left unrun.
+
+Recent commits use concise, imperative subjects such as `Add pyproject and test config`. PRs should explain purpose, affected components, validation, and relevant issues. Keep generated environments, caches, build artifacts, and coverage output out of commits.
