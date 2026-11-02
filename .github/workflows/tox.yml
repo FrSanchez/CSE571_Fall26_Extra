@@ -1,0 +1,38 @@
+name: Tox checks
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  tox:
+    name: ${{ matrix.tox-env }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        tox-env: [ruff, unit-tests]
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pyproject.toml
+
+      - name: Install tox
+        run: python -m pip install "tox>=4.21.2"
+
+      - name: Run tox environment
+        run: python -m tox -e "${{ matrix.tox-env }}"
