@@ -4,7 +4,7 @@ An evidence-seeking web research agent for CSE 571 by **team awesome**. Currentl
 
 **Start with [CSE571_Fall26.md](CSE571_Fall26.md)** for the project scope, requirements, evaluation criteria, and deliverables.
 
-- [PROJECT.md](PROJECT.md) — Three-week plan, team responsibilities, and progress measures.
+- [PROJECT.md](docs/PROJECT.md) — Three-week plan, team responsibilities, and progress measures.
 - [CONTRIBUTING.md](CONTRIBUTING.md) — Branch naming, pull requests, and required checks.
 - [AGENTS.md](AGENTS.md) — Repository guidance for coding agents.
 - [Architecture](docs/ARCHITECTURE.md) and [evaluation](docs/EVALUATION.md) — Placeholders pending team agreement.
