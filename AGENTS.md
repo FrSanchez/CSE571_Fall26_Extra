@@ -5,7 +5,7 @@
 `fall_agent` (author: **team awesome**) is a CSE 571 evidence-seeking web research agent, currently a Hello World scaffold.
 
 - [CSE571_Fall26.md](CSE571_Fall26.md) is the authoritative specification; preserve the original PDF at the root.
-- [PROJECT.md](PROJECT.md) defines the three-week, four-person plan, technical ownership, and progress measures.
+- [PROJECT.md](docs/PROJECT.md) defines the three-week, four-person plan, technical ownership, and progress measures.
 - [README.md](README.md) provides setup and usage instructions; keep it concise.
 - `agent.py` contains the installable top-level `Agent` class and `main()` launcher.
 - `src/` is intentionally empty. Do not recreate `src/fall_agent/` without an agreed layout change.

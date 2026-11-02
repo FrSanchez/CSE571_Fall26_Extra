@@ -1,6 +1,6 @@
 # Contributing
 
-See [README.md](README.md) for setup and [PROJECT.md](PROJECT.md) for team responsibilities.
+See [README.md](README.md) for setup and [PROJECT.md](docs/PROJECT.md) for team responsibilities.
 
 1. Create a branch named `<github-alias>/<short-name>`, for example `frsanchez/github_action`.
 2. Keep each change focused and submit every change through a pull request.

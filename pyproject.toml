@@ -8,7 +8,12 @@ version = "0.1.0"
 description = "An evidence-seeking web research agent for CSE 571."
 readme = "README.md"
 requires-python = ">=3.11"
-authors = [{ name = "team awesome" }]
+authors = [
+    { name = "Angela Rose Marie Brauer" },
+    { name = "Sumona Deb" },
+    { name = "Ankit Gokhale" },
+    { name = "Francisco Sanchez Garcia" }
+]
 dependencies = [
     "torch",
     "scikit-learn",

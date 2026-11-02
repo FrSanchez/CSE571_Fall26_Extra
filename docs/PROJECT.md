@@ -1,6 +1,6 @@
 # Three-Week Project Plan
 
-This plan follows the project scope in [CSE571_Fall26.md](CSE571_Fall26.md). This document covers planning only; implementation has not started.
+This plan follows the project scope in [CSE571_Fall26.md](../CSE571_Fall26.md). This document covers planning only; implementation has not started.
 
 Three weeks is achievable if the team chooses a narrow domain and builds a single-agent system. The assignment allows full credit for this approach. Plan for roughly **10–12 hours per person per week**, or **120–144 team hours** total. Confirm instructor submission deadlines before assigning calendar dates. These capacity estimates and milestones are planning recommendations, not additional course requirements.
 
