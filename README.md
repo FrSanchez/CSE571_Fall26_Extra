@@ -32,6 +32,8 @@ python -m build             # Build a wheel and source archive in dist/
 
 Python needs no manual compilation to run; the build command creates installable distributions. Package metadata, dependencies, pytest, and tox are configured in `pyproject.toml`. Ruff settings are defined in `ruff.toml`.
 
+GitHub Actions runs the tox `ruff` (lint and format checks) and `unit-tests` (tests with coverage) environments on pushes and pull requests. The workflow also supports manual runs.
+
 ## Layout
 
 - `agent.py` — Placeholder `Agent` class and launcher; prints `Hello, world!`.
