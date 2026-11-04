@@ -11,23 +11,41 @@ A starter Ollama-backed agent for CSE 571 by **team awesome**. It accepts a ques
 
 ## Setup and run
 
-Use Python 3.11 or newer and a dedicated virtual environment. Install and start [Ollama](https://ollama.com/), then download a model supported by your machine. From the repository root on macOS/Linux:
+### Install and start Ollama 
+
+1. Download and install Ollama from the [Ollama download page](https://ollama.com/download).
+2. Start the Ollama service in a terminal:
+
+   ```sh
+   ollama serve
+   ```
+
+3. In another terminal, download the model:
+
+   ```sh
+   ollama pull qwen3.5:9b
+   ```
+
+The `qwen3.5:9b` model is the example used on a Mac mini with 16 GB of RAM; choose a model that fits your machine's available memory.
+
+### Set up and run the agent
+
+Use Python 3.11 or newer and a dedicated virtual environment. From the repository root:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-ollama pull llama3.2
 export OLLAMA_BASE_URL=http://localhost:11434
-export OLLAMA_MODEL=llama3.2
-python -m agents.weather "What's the weather in Tempe, Arizona?"
+export OLLAMA_MODEL=qwen3.5:9b
+python src/agents/weather.py "What's the weather in Tempe, Arizona?"
 ```
 
-If `OLLAMA_BASE_URL` is unset, the agent uses `http://localhost:11434`. `OLLAMA_MODEL` is required and must name a model available in Ollama. On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell and set the variables in that shell. Omitting the question starts an interactive prompt:
+The first request may take longer or time out once or twice while Ollama loads the model. Try again after the model has loaded. If `OLLAMA_BASE_URL` is unset, the agent uses `http://localhost:11434`. `OLLAMA_MODEL` must name a model available in Ollama. On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell and set the variables in that shell. Omitting the question starts an interactive prompt:
 
 ```sh
-python -m agents.weather
+python src/agents/weather.py
 ```
 
 The weather tool uses the Open-Meteo geocoding and forecast APIs and does not require an API key. Python dependencies are configured in `pyproject.toml`.
