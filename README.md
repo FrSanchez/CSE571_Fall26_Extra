@@ -1,6 +1,6 @@
 # fall_agent
 
-An evidence-seeking web research agent for CSE 571 by **team awesome**. Currently a Python scaffold with a Hello World placeholder.
+A starter Ollama-backed agent for CSE 571 by **team awesome**. It accepts a question, can call an Open-Meteo weather tool, and returns a response from the model. This is a working starting point, not yet the complete evidence-seeking research system described in the course specification.
 
 **Start with [CSE571_Fall26.md](CSE571_Fall26.md)** for the project scope, requirements, evaluation criteria, and deliverables.
 
@@ -11,17 +11,26 @@ An evidence-seeking web research agent for CSE 571 by **team awesome**. Currentl
 
 ## Setup and run
 
-Use Python 3.11 or newer and a dedicated virtual environment. From the repository root on macOS/Linux:
+Use Python 3.11 or newer and a dedicated virtual environment. Install and start [Ollama](https://ollama.com/), then download a model supported by your machine. From the repository root on macOS/Linux:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-python agent.py
+ollama pull llama3.2
+export OLLAMA_BASE_URL=http://localhost:11434
+export OLLAMA_MODEL=llama3.2
+python -m agents.weather "What's the weather in Tempe, Arizona?"
 ```
 
-On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Installation includes PyTorch (`torch`) and scikit-learn; development tools include pytest, tox, Ruff, and build.
+If `OLLAMA_BASE_URL` is unset, the agent uses `http://localhost:11434`. `OLLAMA_MODEL` is required and must name a model available in Ollama. On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell and set the variables in that shell. Omitting the question starts an interactive prompt:
+
+```sh
+python -m agents.weather
+```
+
+The weather tool uses the Open-Meteo geocoding and forecast APIs and does not require an API key. Python dependencies are configured in `pyproject.toml`.
 
 ## Test, format, and compile/build
 
@@ -38,6 +47,7 @@ GitHub Actions runs the tox `ruff` (lint and format checks) and `unit-tests` (te
 
 ## Layout
 
-- `agent.py` — Placeholder `Agent` class and launcher; prints `Hello, world!`.
-- `src/` — Reserved for future source code; currently empty.
-- `tests/test_agent.py` — Example of constructing and running the agent.
+- `src/agents/agent.py` — Original Hello World agent scaffold.
+- `src/agents/weather.py` — Ollama chat loop and CLI launcher.
+- `src/agents/tools.py` — Weather retrieval and temperature-conversion tools.
+- `tests/test_agent.py` and `tests/test_weather.py` — Agent and tool tests.
