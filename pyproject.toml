@@ -22,6 +22,10 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
     "build",
+    "langchain",
+    "langchain_ollama",
+    "langchain_community",
+    "dotenv",
     "pytest",
     "pytest-cov",
     "ruff",
