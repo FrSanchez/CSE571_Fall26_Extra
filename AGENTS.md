@@ -7,9 +7,10 @@
 - [CSE571_Fall26.md](CSE571_Fall26.md) is the authoritative specification; preserve the original PDF at the root.
 - [PROJECT.md](docs/PROJECT.md) defines the three-week, four-person plan, technical ownership, and progress measures.
 - [README.md](README.md) provides setup and usage instructions; keep it concise.
-- `agent.py` contains the installable top-level `Agent` class and `main()` launcher.
-- `src/` is intentionally empty. Do not recreate `src/fall_agent/` without an agreed layout change.
-- `tests/test_agent.py` instantiates `Agent` using `from agent import Agent`.
+- `src/agents/agent.py` contains the original Hello World scaffold.
+- `src/agents/weather.py` contains the Ollama-backed weather agent and `main()` launcher.
+- `src/agents/tools.py` contains weather retrieval and temperature-conversion tools.
+- `tests/test_agent.py` and `tests/test_weather.py` import from `agents.weather`.
 
 Future implementation must follow the specification: six questions in one bounded domain, adaptive research, retrieved-page evidence, claim verification, citations, budgets, traces, and baseline comparison. These capabilities are not implemented yet.
 
@@ -27,7 +28,7 @@ Use a dedicated virtual environment from the repository root:
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -e ".[dev]"
-python agent.py                 # Print Hello, world!
+python -m agents.weather        # Start the weather-agent prompt (after package install)
 python -m pytest               # Run tests
 python -m tox                  # Run py, ruff, and unit-tests
 python -m tox -e unit-tests     # Tests with agent coverage
@@ -41,7 +42,7 @@ Windows PowerShell activation: `.venv\Scripts\Activate.ps1`. Python requires no 
 
 Use four-space indentation, type annotations, `snake_case` functions/files, and `PascalCase` classes. Ruff configures 120-character lines and E, F, ANN rules; preserve its existing exclusions. The tox Ruff environment checks lint and formatting.
 
-Use pytest with `tests/test_*.py` files and `test_*` functions. Coverage targets `agent`, not empty `src/`, and produces terminal, HTML, and XML reports. No coverage threshold is configured.
+Use pytest with `tests/test_*.py` files and `test_*` functions. Coverage targets `agents.weather` and produces terminal, HTML, and XML reports. No coverage threshold is configured.
 
 ## Agent Workflow & Contribution Rules
 

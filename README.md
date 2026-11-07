@@ -1,6 +1,6 @@
 # fall_agent
 
-An evidence-seeking web research agent for CSE 571 by **team awesome**. Currently a Python scaffold with a Hello World placeholder.
+A starter Ollama-backed agent for CSE 571 by **team awesome**. It accepts a question, can call an Open-Meteo weather tool, and returns a response from the model. This is a working starting point, not yet the complete evidence-seeking research system described in the course specification.
 
 **Start with [CSE571_Fall26.md](CSE571_Fall26.md)** for the project scope, requirements, evaluation criteria, and deliverables.
 
@@ -11,17 +11,63 @@ An evidence-seeking web research agent for CSE 571 by **team awesome**. Currentl
 
 ## Setup and run
 
-Use Python 3.11 or newer and a dedicated virtual environment. From the repository root on macOS/Linux:
+### Install and start Ollama 
+
+1. Download and install Ollama from the [Ollama download page](https://ollama.com/download).
+2. Start the Ollama service in a terminal:
+
+   ```sh
+   ollama serve
+   ```
+
+3. In another terminal, download the model:
+
+   ```sh
+   ollama pull qwen3.5:9b
+   ```
+
+The `qwen3.5:9b` model is the example used on a Mac mini with 16 GB of RAM; choose a model that fits your machine's available memory.
+
+### Set up and run the agent
+
+Use Python 3.11 or newer and a dedicated virtual environment. From the repository root:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -e ".[dev]"
-python agent.py
+export OLLAMA_BASE_URL=http://localhost:11434
+export OLLAMA_MODEL=qwen3.5:9b
+python src/agents/weather.py "What's the weather in Tempe, Arizona?"
 ```
 
-On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell. Installation includes PyTorch (`torch`) and scikit-learn; development tools include pytest, tox, Ruff, and build.
+The first request may take longer or time out once or twice while Ollama loads the model. Try again after the model has loaded. If `OLLAMA_BASE_URL` is unset, the agent uses `http://localhost:11434`. `OLLAMA_MODEL` must name a model available in Ollama. On Windows, activate with `.venv\Scripts\Activate.ps1` in PowerShell and set the variables in that shell. Omitting the question starts an interactive prompt:
+
+```sh
+python src/agents/weather.py
+```
+
+The weather tool uses the Open-Meteo geocoding and forecast APIs and does not require an API key. Python dependencies are configured in `pyproject.toml`.
+
+## DuckDuckGo and Jina Reader research agent
+
+The research agent in `src/agents/first.py` uses DuckDuckGo for web results and Jina Reader to retrieve page content. DuckDuckGo does not require an API key; a Jina API key is optional:
+
+```sh
+export JINA_API_KEY=your_jina_api_key  # optional
+python src/agents/first.py
+```
+
+`DuckDuckGoJinaSearchResults` is implemented in `src/agents/duckduckgo_jina_search.py` and can be imported directly by other agents:
+
+```python
+from agents.duckduckgo_jina_search import DuckDuckGoJinaSearchResults
+
+search_tool = DuckDuckGoJinaSearchResults(max_results=5)
+```
+
+It returns JSON search-result records containing the title, URL, DuckDuckGo snippet, and Jina-extracted page text. If Jina cannot retrieve an individual result, that result includes a `reader_error` field.
 
 ## Test, format, and compile/build
 
@@ -38,6 +84,7 @@ GitHub Actions runs the tox `ruff` (lint and format checks) and `unit-tests` (te
 
 ## Layout
 
-- `agent.py` — Placeholder `Agent` class and launcher; prints `Hello, world!`.
-- `src/` — Reserved for future source code; currently empty.
-- `tests/test_agent.py` — Example of constructing and running the agent.
+- `src/agents/agent.py` — Original Hello World agent scaffold.
+- `src/agents/weather.py` — Ollama chat loop and CLI launcher.
+- `src/agents/tools.py` — Weather retrieval and temperature-conversion tools.
+- `tests/test_agent.py` and `tests/test_weather.py` — Agent and tool tests.

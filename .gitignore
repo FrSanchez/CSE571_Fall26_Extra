@@ -9,3 +9,5 @@ build/
 dist/
 coverage.xml
 .coverage
+*.log
+.env
