@@ -25,6 +25,7 @@ dev = [
     "langchain",
     "langchain_ollama",
     "langchain_community",
+    "ddgs",
     "dotenv",
     "pytest",
     "pytest-cov",

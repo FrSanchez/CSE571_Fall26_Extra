@@ -50,25 +50,24 @@ python src/agents/weather.py
 
 The weather tool uses the Open-Meteo geocoding and forecast APIs and does not require an API key. Python dependencies are configured in `pyproject.toml`.
 
-## Brave Search and Jina Reader research agent
+## DuckDuckGo and Jina Reader research agent
 
-The research agent in `src/agents/first.py` uses Brave Search for web results and Jina Reader to retrieve page content. Set a Brave Search API key before starting it; a Jina API key is optional:
+The research agent in `src/agents/first.py` uses DuckDuckGo for web results and Jina Reader to retrieve page content. DuckDuckGo does not require an API key; a Jina API key is optional:
 
 ```sh
-export BRAVE_API_KEY=your_brave_api_key
 export JINA_API_KEY=your_jina_api_key  # optional
 python src/agents/first.py
 ```
 
-`BraveJinaSearchResults` is implemented in `src/agents/brave_jina_search.py` and can be imported directly by other agents:
+`DuckDuckGoJinaSearchResults` is implemented in `src/agents/duckduckgo_jina_search.py` and can be imported directly by other agents:
 
 ```python
-from agents.brave_jina_search import BraveJinaSearchResults
+from agents.duckduckgo_jina_search import DuckDuckGoJinaSearchResults
 
-search_tool = BraveJinaSearchResults(max_results=5)
+search_tool = DuckDuckGoJinaSearchResults(max_results=5)
 ```
 
-It returns JSON search-result records containing the title, URL, Brave snippet, and Jina-extracted page text. If Jina cannot retrieve an individual result, that result includes a `reader_error` field.
+It returns JSON search-result records containing the title, URL, DuckDuckGo snippet, and Jina-extracted page text. If Jina cannot retrieve an individual result, that result includes a `reader_error` field.
 
 ## Test, format, and compile/build
 

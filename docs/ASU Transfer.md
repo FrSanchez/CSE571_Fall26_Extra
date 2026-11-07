@@ -1,0 +1,11 @@
+ASU undergraduate transfer pathways
+===================================
+
+**Bounded domain:** Transfer pathways from Maricopa Community Colleges to ASU undergraduate programs, centered on the Computer Science, BS degree. Use current official ASU transfer guides, degree maps, catalogs, and admissions pages where available.
+
+1. **Authoritative factual lookup:** According to ASU’s current Transfer Guide, what ASU course equivalency, if any, is listed for Maricopa Community Colleges course MAT 265? Include any stated restrictions or applicable terms.
+2. **Multi-source comparison:** How do the lower-division mathematics and computing requirements for ASU’s Computer Science, BS and Software Engineering, BS differ for a prospective transfer student? Compare the current official degree maps, and use the Transfer Guide to explain any listed Maricopa course equivalents.
+3. **Multi-step or multi-hop research:** For a hypothetical student who completed Maricopa MAT 265 and plans to pursue ASU’s Computer Science, BS, trace the course from its Transfer Guide equivalency to the corresponding requirement on the current degree map. What requirement does the available evidence show it may satisfy, and what related requirement, if any, remains?
+4. **Time-sensitive research:** For the next fall term currently accepting applications, what is the published ASU transfer application deadline for a student intending to enter Computer Science, BS? Report the source’s publication or update date, if available, and distinguish a general ASU deadline from any program-specific deadline.
+5. **Conflicting-evidence research:** Do ASU’s Transfer Guide and the current Computer Science, BS degree map or catalog agree about how Maricopa MAT 265 transfers and applies to the degree? If they differ, explain whether the difference is due to the source’s date, academic year, or distinction between course equivalency and degree applicability; if they do not conflict, say so.
+6. **Insufficient-evidence or abstention question:** A prospective student says they have 60 Maricopa transfer credits, including MAT 265. Based only on public ASU webpages, can the agent determine exactly how many of those credits will apply to the Computer Science, BS degree? If not, state what information or official evaluation is missing rather than estimating.
