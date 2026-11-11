@@ -31,7 +31,7 @@ class AgentStatusCallbackHandler(BaseCallbackHandler):
     def __init__(self, status_callback: Callable[[str, str | None], None]) -> None:
         self.status_callback = status_callback
 
-    def on_llm_start(self, serialized: dict[str, Any], prompts: list[str], **kwargs: Any) -> None:
+    def on_llm_start(self, serialized: dict[str, Any], prompts: list[str], **kwargs: object) -> None:
         """Signal that a new model response is starting."""
         self.status_callback("llm_start", None)
 
@@ -39,21 +39,21 @@ class AgentStatusCallbackHandler(BaseCallbackHandler):
         self,
         serialized: dict[str, Any],
         messages: list[list[Any]],
-        **kwargs: Any,
+        **kwargs: object,
     ) -> None:
         """Signal that a new chat-model response is starting."""
         self.status_callback("llm_start", None)
 
-    def on_tool_start(self, serialized: dict[str, Any], input_str: str, **kwargs: Any) -> None:
+    def on_tool_start(self, serialized: dict[str, Any], input_str: str, **kwargs: object) -> None:
         """Publish the name of the tool currently running."""
         tool_name = serialized.get("name", "research tool")
         self.status_callback("tool_start", str(tool_name))
 
-    def on_tool_end(self, output: Any, **kwargs: Any) -> None:
+    def on_tool_end(self, output: object, **kwargs: object) -> None:
         """Clear the running-tool status when a tool finishes."""
         self.status_callback("tool_end", None)
 
-    def on_tool_error(self, error: BaseException, **kwargs: Any) -> None:
+    def on_tool_error(self, error: BaseException, **kwargs: object) -> None:
         """Clear the running-tool status when a tool fails."""
         self.status_callback("tool_end", None)
 
