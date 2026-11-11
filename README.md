@@ -96,6 +96,8 @@ streamlit run streamlit_app.py
 
 The interface calls `AdmissionsAgent` from `src/agents/admissions.py`, displays the chat history, and supports `/quit` to end a session. While a tool runs, it shows the tool name; each new model response selects a message from the one-line-per-message `spinner.md` file. Click **Start a new session** to begin again. Each submitted question starts a fresh research run and saves its trace under `runs/`.
 
+See [docs/WEB_APP.md](docs/WEB_APP.md) for the interface purpose, architecture, and launch instructions.
+
 ## Test, format, and compile/build
 
 ```sh
