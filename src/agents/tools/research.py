@@ -61,9 +61,7 @@ class AdmissionsResearchTools:
                 for rank, item in enumerate(raw_results, start=1)
                 if isinstance(item, dict) and item.get("href")
             ]
-            self.trace.append(
-                {"timestamp": self._now(), "action": "web_search", "query": query, "results": results}
-            )
+            self.trace.append({"timestamp": self._now(), "action": "web_search", "query": query, "results": results})
             return json.dumps(results, ensure_ascii=False)
 
         @tool

@@ -24,9 +24,7 @@ def test_agent_uses_weather_tool_and_returns_ollama_answer(monkeypatch: pytest.M
             "message": {
                 "role": "assistant",
                 "content": "",
-                "tool_calls": [
-                    {"function": {"name": "get_weather", "arguments": {"location": "Tempe, Arizona"}}}
-                ],
+                "tool_calls": [{"function": {"name": "get_weather", "arguments": {"location": "Tempe, Arizona"}}}],
             }
         },
         {

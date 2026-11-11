@@ -25,6 +25,7 @@ logging.basicConfig(
     filemode="w",  # 'w' to overwrite file each run, 'a' to append
 )
 
+
 @tool
 def calculator(expression: str) -> str:
     """Evaluate a mathematical expression. Use for any arithmetic
@@ -36,6 +37,7 @@ def calculator(expression: str) -> str:
     except Exception as e:
         logging.error("[calculator] Error evaluating expression: %s", expression)
         return f"Error: {e}"
+
 
 @tool
 def fetch_url(url: str) -> str:
@@ -53,6 +55,7 @@ def fetch_url(url: str) -> str:
     except Exception as e:
         return f"Error fetching URL: {e}"
 
+
 @tool
 def save_note(title: str, content: str) -> str:
     """Save a research note to disk for later reference.
@@ -66,6 +69,7 @@ def save_note(title: str, content: str) -> str:
         f.write(f"\n## {title}\n\n{content}\n")
     return f"Note '{title}' saved."
 
+
 @tool
 def read_notes() -> str:
     logging.debug("[read_notes] Reading notes from file: %s", NOTES_FILE)
@@ -74,6 +78,7 @@ def read_notes() -> str:
     if not NOTES_FILE.exists():
         return "No notes yet."
     return NOTES_FILE.read_text()
+
 
 search_tool = DuckDuckGoJinaSearchResults(max_results=5)
 model = ChatOllama(model="qwen3.5:9b", temperature=0, keep_alive=-1, request_timeout=300)
@@ -89,6 +94,7 @@ record key findings. Use read_notes to recall what has been covered.
 Always cite specific sources from search results.""",
     checkpointer=checkpointer,
 )
+
 
 def run_interactive() -> None:
     config = {"configurable": {"thread_id": "research-session-1"}}
@@ -108,6 +114,7 @@ def run_interactive() -> None:
             config=config,
         )
         print(f"\nAgent: {result['messages'][-1].content}\n")
+
 
 if __name__ == "__main__":
     run_interactive()

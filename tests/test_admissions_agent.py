@@ -52,9 +52,7 @@ def configure_agent_mocks(
     return {"model": model, "model_arguments": model_arguments, "graph_arguments": graph_arguments}
 
 
-def test_agent_loads_prompt_from_file_on_initialization(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_agent_loads_prompt_from_file_on_initialization(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     prompt_path = tmp_path / "system_prompt.md"
     prompt_path.write_text("Admissions prompt from file", encoding="utf-8")
     monkeypatch.setattr(admissions_module, "SYSTEM_PROMPT_PATH", prompt_path)
@@ -75,9 +73,7 @@ def test_agent_rejects_missing_prompt_file(monkeypatch: pytest.MonkeyPatch, tmp_
         AdmissionsAgent()
 
 
-def test_agent_runs_graph_reports_status_and_writes_trace(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_agent_runs_graph_reports_status_and_writes_trace(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     research_tools = FakeResearchTools()
 
     class FakeGraph:
@@ -136,9 +132,7 @@ def test_agent_rejects_empty_question_before_creating_research_tools(monkeypatch
         AdmissionsAgent().run("   ")
 
 
-def test_agent_records_graph_errors_in_trace(
-    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
-) -> None:
+def test_agent_records_graph_errors_in_trace(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     research_tools = FakeResearchTools()
 
     class FailingGraph:

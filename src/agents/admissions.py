@@ -123,7 +123,9 @@ class AdmissionsAgent:
         destination.parent.mkdir(parents=True, exist_ok=True)
         trace: dict[str, Any] = {
             "question": question,
-            "started_at": research_tools.trace[0]["timestamp"] if research_tools.trace else datetime.now(timezone.utc).isoformat(),
+            "started_at": research_tools.trace[0]["timestamp"]
+            if research_tools.trace
+            else datetime.now(timezone.utc).isoformat(),
             "completed_at": datetime.now(timezone.utc).isoformat(),
             "search_count": research_tools.searches,
             "retrieval_count": research_tools.retrievals,
