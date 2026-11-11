@@ -1,4 +1,4 @@
-"""Weather retrieval and temperature-conversion tools."""
+"""Available weather and web-research tools."""
 
 import json
 import logging
@@ -6,6 +6,8 @@ from typing import Any
 from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
+
+from .research import AdmissionsResearchTools
 
 DEFAULT_REQUEST_TIMEOUT = 30
 
@@ -163,3 +165,16 @@ def get_weather(location: str) -> dict[str, Any]:
     }
     logging.debug("Returning weather data: %s", weather)
     return weather
+
+
+__all__ = [
+    "AdmissionsResearchTools",
+    "AgentError",
+    "CELSIUS2FARENHEIT_TOOL",
+    "FARENHEIT2CELSIUS_TOOL",
+    "TOOLS",
+    "WEATHER_TOOL",
+    "celsius2farenheit",
+    "farenheit2celsius",
+    "get_weather",
+]

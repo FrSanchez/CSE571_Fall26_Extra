@@ -69,6 +69,33 @@ search_tool = DuckDuckGoJinaSearchResults(max_results=5)
 
 It returns JSON search-result records containing the title, URL, DuckDuckGo snippet, and Jina-extracted page text. If Jina cannot retrieve an individual result, that result includes a `reader_error` field.
 
+## ASU admissions LangGraph agent
+
+The project task suite now focuses on first-year undergraduate admissions at ASU, with UArizona as the comparison institution. See [the six questions](docs/ASU%20Transfer.md) and [the architecture](docs/ARCHITECTURE.md).
+
+Start Ollama as described above, then run the admissions agent from the repository root (or an activated environment with the package installed):
+
+```sh
+export OLLAMA_BASE_URL=http://localhost:11434
+export OLLAMA_MODEL=qwen3.5:9b
+python -m agents.admissions "How do ASU and UArizona first-year admission requirements compare?"
+```
+
+The agent uses DuckDuckGo search, Jina Reader page retrieval, structured claim evidence, and a LangGraph-backed tool loop. It returns a suggested next step after each answer, then accepts another question until you enter `/quit`. See [the interaction workflow](docs/AGENT_WORKFLOW.md). Each question writes a JSON trace to `runs/`; set `JINA_API_KEY` optionally for authenticated Jina access, or pass `--trace path/to/file.json` to choose a trace path for the first question. The trace includes retrieved page text. The available search and retrieval budgets are 8 searches and 12 pages per question.
+
+For an installed package, invoke `python -m agents.admissions ...` with `src` on the Python path, as in the repository's configured pytest environment, or install the project with `python -m pip install -e ".[dev]"`.
+
+### Streamlit web interface
+
+Install the optional UI dependency and start the local web app:
+
+```sh
+python -m pip install -e ".[ui]"
+streamlit run streamlit_app.py
+```
+
+The interface calls `AdmissionsAgent` from `src/agents/admissions.py`, displays the chat history, and supports `/quit` to end a session. While a tool runs, it shows the tool name; each new model response selects a message from the one-line-per-message `spinner.md` file. Click **Start a new session** to begin again. Each submitted question starts a fresh research run and saves its trace under `runs/`.
+
 ## Test, format, and compile/build
 
 ```sh
@@ -86,5 +113,7 @@ GitHub Actions runs the tox `ruff` (lint and format checks) and `unit-tests` (te
 
 - `src/agents/agent.py` — Original Hello World agent scaffold.
 - `src/agents/weather.py` — Ollama chat loop and CLI launcher.
-- `src/agents/tools.py` — Weather retrieval and temperature-conversion tools.
+- `src/agents/tools/` — Shared weather and admissions research tool package.
+- `src/agents/admissions.py` — LangGraph admissions research agent.
+- `streamlit_app.py` — Basic web chat interface for the admissions agent.
 - `tests/test_agent.py` and `tests/test_weather.py` — Agent and tool tests.

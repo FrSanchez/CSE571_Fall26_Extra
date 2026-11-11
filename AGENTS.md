@@ -2,23 +2,26 @@
 
 ## Project Scope & Structure
 
-`fall_agent` (author: **team awesome**) is a CSE 571 evidence-seeking web research agent, currently a Hello World scaffold.
+`fall_agent` (author: **team awesome**) is a CSE 571 evidence-seeking web research agent. The current task domain is ASU first-year undergraduate admissions, compared with the University of Arizona.
 
 - [CSE571_Fall26.md](CSE571_Fall26.md) is the authoritative specification; preserve the original PDF at the root.
 - [PROJECT.md](docs/PROJECT.md) defines the three-week, four-person plan, technical ownership, and progress measures.
 - [README.md](README.md) provides setup and usage instructions; keep it concise.
 - `src/agents/agent.py` contains the original Hello World scaffold.
+- `src/agents/admissions.py` runs the LangGraph admissions research agent with local Ollama.
+- `src/agents/system_prompt.md` contains the admissions agent's runtime system prompt.
 - `src/agents/weather.py` contains the Ollama-backed weather agent and `main()` launcher.
-- `src/agents/tools.py` contains weather retrieval and temperature-conversion tools.
+- `src/agents/tools/__init__.py` exports weather and admissions research tools.
+- `src/agents/tools/research.py` implements web search, page retrieval, evidence storage, and per-run traces.
 - `tests/test_agent.py` and `tests/test_weather.py` import from `agents.weather`.
 
-Future implementation must follow the specification: six questions in one bounded domain, adaptive research, retrieved-page evidence, claim verification, citations, budgets, traces, and baseline comparison. These capabilities are not implemented yet.
+The agent implementation must follow the specification: six questions in one bounded domain, adaptive research, retrieved-page evidence, claim verification, citations, budgets, traces, and baseline comparison. The initial agent/tools scaffold is implemented; evaluation and a baseline comparison remain future work.
 
 ## Configuration & Dependencies
 
 Use Python 3.11+. `pyproject.toml` centralizes setuptools packaging, metadata, runtime dependencies, dev extras, pytest, and tox. Keep this configuration consolidated; no `tox.ini` or requirements files are needed.
 
-Runtime dependencies are `torch` and `scikit-learn`. Dev extras include build, pytest, pytest-cov, Ruff, and tox >=4.21.2. Ruff settings remain in `ruff.toml`.
+Runtime dependencies include LangGraph, LangChain Ollama, DuckDuckGo search, `torch`, and `scikit-learn`. Dev extras include build, pytest, pytest-cov, Ruff, and tox >=4.21.2. Ruff settings remain in `ruff.toml`.
 
 ## Setup, Run & Build
 

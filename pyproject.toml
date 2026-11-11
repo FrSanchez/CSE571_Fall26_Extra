@@ -17,27 +17,33 @@ authors = [
 dependencies = [
     "torch",
     "scikit-learn",
+    "ddgs",
+    "langchain",
+    "langchain-ollama",
+    "langgraph",
+    "streamlit",
 ]
 
 [project.optional-dependencies]
 dev = [
     "build",
-    "langchain",
-    "langchain_ollama",
     "langchain_community",
-    "ddgs",
     "dotenv",
     "pytest",
     "pytest-cov",
     "ruff",
     "tox>=4.21.2",
 ]
+ui = ["streamlit"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+agents = ["system_prompt.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

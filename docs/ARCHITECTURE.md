@@ -1,85 +1,50 @@
-# Multi-agent architecture
+# ASU admissions research agent architecture
 
-## Overview
+## Goal and domain
 
-The research system uses three specialized agents to answer factual questions in the bounded domain of Maricopa Community College transfer pathways to ASU undergraduate programs. The agents share a structured evidence bundle, but have distinct responsibilities:
+The agent researches first-year undergraduate admission questions for Arizona State University (ASU), with the University of Arizona as the comparison institution. The six-question suite is in [ASU Transfer.md](./ASU%20Transfer.md); the filename is retained for continuity, though its scope now covers undergraduate admissions rather than transfer equivalencies.
 
-1. **Research agent** finds and retrieves candidate sources.
-2. **Verification agent** evaluates whether those sources support the claims.
-3. **Synthesis agent** answers from verified evidence or explicitly abstains.
+## Initial architecture
 
-An orchestrator coordinates handoffs, applies search and retrieval budgets, requests additional research when verification identifies an evidence gap, and records the run trace.
-
-## Agent responsibilities
-
-### Research agent
-
-- Decompose the question into focused searches; use at least two queries for nontrivial questions.
-- Prefer authoritative ASU sources, such as the Transfer Guide, degree maps, catalog, and admissions pages.
-- Retrieve selected webpages and passages; search-result snippets alone are not evidence.
-- Return candidate claims with source metadata and exact supporting passages.
-- Respond to focused follow-up requests from the verification agent.
-- Do not label claims as verified.
-
-### Verification agent
-
-- Evaluate each claim against its retrieved passage and assign `supported`, `contradicted`, or `insufficient`.
-- Assess source authority, freshness, and independence.
-- Verify linked steps independently. For example, distinguish whether MAT 265 transfers as a specific ASU course from whether that course satisfies a particular Computer Science degree requirement.
-- Identify credible disagreements and consider explanations such as source date, academic year, scope, or the difference between course equivalency and degree applicability.
-- Request targeted additional research when evidence is missing or unclear.
-- Return insufficient evidence when public sources cannot establish a conclusion, including an individual student's final credit applicability.
-
-### Synthesis agent
-
-- Use verified claims and sources actually retrieved during the run.
-- Answer the question directly, with citations to the supporting sources.
-- Explain relevant uncertainty, conflicts, source dates, and limitations.
-- Abstain explicitly when evidence is insufficient; do not turn an unverified claim into a factual answer.
-
-## Handoff and control flow
+The first implementation is a single LangGraph agent, invoked through LangChain's graph-backed `create_agent` API, with a local Ollama model selecting actions. Its editable system prompt lives in `src/agents/system_prompt.md` and is loaded when `AdmissionsAgent` is initialized. Setuptools includes the prompt in built packages. The agent loops over the user question, search results, retrieved page text, evidence records, and prior tool results. This is the required initial route; separate research/verification/synthesis agents remain an optional later experiment and would need a baseline comparison.
 
 ```text
-User question
-    |
-    v
-Orchestrator -> Research agent -> candidate evidence bundle
-                    ^                    |
-                    |                    v
-                    +-- targeted request <- Verification agent
-                                             |
-                                  verified claims and labels
-                                             |
-                                             v
-                                      Synthesis agent
-                                             |
-                                             v
-                                    Cited answer or abstention
+Question -> Ollama-backed LangGraph agent -> web_search
+                 ^                              |
+                 |                              v
+                 +-- tool results <- fetch_page
+                 |                    |
+                 +-- evidence <- save_evidence / list_evidence
+                 |
+                 +-- cited answer or abstention
 ```
 
-The normal flow is research, verification, then synthesis. Verification may return a bounded follow-up request to research when a claim lacks support, a newer source is needed, or sources conflict. The orchestrator limits these cycles and records search queries, retrieved URLs, verification decisions, and the final response. If the budget is exhausted before evidence is sufficient, synthesis reports that limitation rather than guessing.
+## Tools and evidence
 
-## Evidence handoff format
+`src/agents/tools/` is the shared tool package. Its `__init__.py` preserves the existing weather tools and exports the admissions research tool factory. Each admissions run creates its own four tools:
 
-Each candidate or verified claim should be represented as a structured record with:
+- `web_search(query)` uses DuckDuckGo and returns ranked titles, URLs, snippets, and ranks. Snippets guide retrieval but are not evidence.
+- `fetch_page(url)` retrieves readable page content through Jina Reader. It stores title, URL, retrieval timestamp, content, and available metadata for the run.
+- `save_evidence(...)` stores a claim, source, exact passage, source-quality assessment, verification label, and rationale. It accepts only successfully retrieved pages and quotations found verbatim in their text.
+- `list_evidence()` returns the structured records for review before answering.
 
-- Claim or research note;
-- Source title and URL;
-- Retrieval timestamp and source publication/update date when available;
-- Supporting or contradicting quotation from the retrieved page;
-- Source category or brief quality assessment;
-- Verification label: `supported`, `contradicted`, or `insufficient`;
-- Brief explanation of the verification decision.
+Searches are limited to 8 and page retrievals to 12 per question. Each tool action, search result, retrieved page, evidence item, and final answer is written to a JSON trace under `runs/` by default; pass `--trace` to select a path. Trace files may contain retrieved page text and should be reviewed before sharing.
 
-Research may leave the verification label unset in its candidate bundle. The verification agent supplies the label and rationale. Synthesis uses these records to ensure citations map to retrieved evidence rather than search results it has not inspected.
+The initial verification label is assigned by the model after it inspects the quote and source context. Quote membership and retrieved-source provenance are checked by the tool; semantic verification still requires evaluation. Sources should prioritize official ASU and UArizona pages, with credible institutional datasets for published admission statistics. The system prompt directs the agent to identify the term, population, and date associated with requirements, deadlines, and statistics, and to abstain on student-specific outcomes that public sources cannot establish.
 
-## Application to the six-question suite
+## Runtime
 
-All six questions in [ASU Transfer.md](./ASU%20Transfer.md) use the same three-agent workflow:
+Set `OLLAMA_BASE_URL` (default `http://localhost:11434`) and `OLLAMA_MODEL` (default `qwen3.5:9b`), start Ollama, then run:
 
-- **Authoritative lookup:** research the official transfer listing; verification checks the exact course and any restrictions.
-- **Multi-source comparison:** research official requirements for both programs; verification compares the same requirement categories across sources.
-- **Multi-step research:** research the course equivalency and degree map; verification checks each link in the chain separately.
-- **Time-sensitive research:** research the relevant admissions deadline; verification checks applicability, source date, and whether the deadline is general or program-specific.
-- **Conflicting evidence:** research both relevant ASU pages; verification determines whether there is a real conflict and assesses possible date, scope, or terminology differences.
-- **Insufficient evidence:** research the public credit policies and student-provided facts; verification determines whether those sources can support an exact credit-applicability conclusion. Synthesis abstains if they cannot.
+```sh
+python -m agents.admissions "What are ASU's current first-year admission requirements?"
+```
+
+The agent uses live DuckDuckGo search and Jina Reader retrieval; `JINA_API_KEY` is optional. Search availability and page contents may vary over time, so the JSON trace is part of each evaluated run.
+
+## Next implementation milestones
+
+1. Evaluate the six-question suite and inspect traces for coverage, citation validity, and sensible abstentions.
+2. Add deterministic validation and explicit freshness/source-quality checks based on observed failures.
+3. Implement a fixed-query or search-and-summarize baseline and compare answer correctness, citations, adaptivity, and tool cost.
+4. Consider specialized agents only if the single-agent evaluation shows a concrete benefit to test.

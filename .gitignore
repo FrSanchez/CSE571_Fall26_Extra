@@ -11,3 +11,4 @@ coverage.xml
 .coverage
 *.log
 .env
+runs/
