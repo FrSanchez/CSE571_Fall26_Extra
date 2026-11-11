@@ -45,7 +45,7 @@ Windows PowerShell activation: `.venv\Scripts\Activate.ps1`. Python requires no 
 
 Use four-space indentation, type annotations, `snake_case` functions/files, and `PascalCase` classes. Ruff configures 120-character lines and E, F, ANN rules; preserve its existing exclusions. The tox Ruff environment checks lint and formatting.
 
-Use pytest with `tests/test_*.py` files and `test_*` functions. Coverage targets `agents.weather` and produces terminal, HTML, and XML reports. No coverage threshold is configured.
+Use pytest with `tests/test_*.py` files and `test_*` functions. Coverage targets `agents.weather`, `agents.admissions`, and `agents.tools.research`, producing terminal, HTML, and XML reports. No coverage threshold is configured.
 
 ## Agent Workflow & Contribution Rules
 
