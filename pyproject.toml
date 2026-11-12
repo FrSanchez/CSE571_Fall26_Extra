@@ -17,22 +17,37 @@ authors = [
 dependencies = [
     "torch",
     "scikit-learn",
+    "ddgs",
+    "langchain",
+    "langchain-ollama",
+    "langgraph",
+    "streamlit",
 ]
 
 [project.optional-dependencies]
 dev = [
     "build",
+    "langchain_community",
+    "dotenv",
     "pytest",
     "pytest-cov",
     "ruff",
     "tox>=4.21.2",
 ]
+ui = ["streamlit"]
 
 [tool.setuptools]
-py-modules = ["agent"]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+agents = ["system_prompt.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["src"]
 
 [tool.tox]
 requires = ["tox>=4.21.2"]
@@ -51,19 +66,19 @@ description = "Check lint and formatting"
 skip_install = true
 deps = ["ruff"]
 commands = [
-    ["ruff", "check", "agent.py", "src", "tests"],
-    ["ruff", "format", "--check", "agent.py", "src", "tests"],
+    ["ruff", "check", "src", "tests"],
+    ["ruff", "format", "--check", "src", "tests"],
 ]
 
 [tool.tox.env.format]
 description = "Apply Ruff formatting"
 skip_install = true
 deps = ["ruff"]
-commands = [["ruff", "format", "agent.py", "src", "tests"]]
+commands = [["ruff", "format", "src", "tests"]]
 
 [tool.tox.env.unit-tests]
 description = "Run unit tests with coverage of the agent module"
 deps = ["pytest", "pytest-cov"]
 commands = [
-    ["python", "-m", "pytest", "-s", "-v", "--cov=agent", "--cov-report=term", "--cov-report=html", "--cov-report=xml", { replace = "posargs", default = ["tests"], extend = true }],
+    ["python", "-m", "pytest", "-s", "-v", "--cov=agents.weather", "--cov=agents.admissions", "--cov=agents.tools.research", "--cov-report=term", "--cov-report=html", "--cov-report=xml", { replace = "posargs", default = ["tests"], extend = true }],
 ]
