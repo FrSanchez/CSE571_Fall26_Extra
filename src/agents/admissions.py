@@ -15,7 +15,7 @@ from langchain_ollama import ChatOllama
 from agents.tools import AdmissionsResearchTools
 
 DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434"
-DEFAULT_OLLAMA_MODEL = "qwen3.5:9b"
+DEFAULT_OLLAMA_MODEL = "qwen3:8b"
 MAX_GRAPH_STEPS = 50
 TRACE_DIR = Path("runs")
 SYSTEM_PROMPT_PATH = Path(__file__).with_name("system_prompt.md")
@@ -85,7 +85,13 @@ class AdmissionsAgent:
             raise AdmissionsAgentError("Please enter a research question.")
 
         research_tools = AdmissionsResearchTools()
-        model = ChatOllama(model=self.model_name, base_url=self.base_url, temperature=0, request_timeout=300)
+        model = ChatOllama(
+            model=self.model_name,
+            base_url=self.base_url,
+            temperature=0,
+            keep_alive="24h",
+            request_timeout=300,
+        )
         graph = create_agent(model=model, tools=research_tools.tools, system_prompt=self.system_prompt)
         callbacks = [AgentStatusCallbackHandler(status_callback)] if status_callback else []
         try:

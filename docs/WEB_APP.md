@@ -8,7 +8,9 @@ The Streamlit interface makes the admissions research agent easier to demonstrat
 
 `streamlit_app.py` provides a basic chat interface and calls `AdmissionsAgent` from `src/agents/admissions.py`. The agent runs a LangGraph research cycle with local Ollama and the web search, page retrieval, and evidence tools. Each submitted question gets a fresh research run; the visible chat history is for reference and is not passed into the next run as conversation context. Each run writes its trace under `runs/`.
 
-The UI displays the active tool name while a tool is running. When the model starts a response, it selects a wait message from the root-level `spinner.md` file. This file contains one message per line and can be edited to change the status messages.
+When a Streamlit session starts, the app sends Ollama an empty-prompt warmup request with `keep_alive` set to `24h`. Research model calls use the same setting, keeping the model loaded between requests. If warmup fails, the app shows a warning and still allows questions to be submitted.
+
+The UI displays the active tool name while a tool is running. When a model call starts, it shows an elapsed timer for Ollama's prompt processing and response generation. Ollama's `processed`/`total` prompt-processing log lines are emitted by the Ollama server and are not exposed as incremental progress by the API, so the UI cannot show an exact percentage or token count.
 
 ## Run locally
 

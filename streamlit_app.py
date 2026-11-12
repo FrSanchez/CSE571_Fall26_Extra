@@ -1,25 +1,42 @@
 """Basic Streamlit chat interface for the ASU admissions research agent."""
 
+import json
 import queue
-import random
-from pathlib import Path
 import threading
+import time
+from urllib.error import HTTPError, URLError
+from urllib.request import Request, urlopen
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
 
 from agents.admissions import AdmissionsAgent, AdmissionsAgentError
 
-SPINNER_FILE = Path(__file__).with_name("spinner.md")
+KEEP_ALIVE = "24h"
 
 
-def _load_spinner_messages() -> list[str]:
-    """Read the one-message-per-line list used for model-call status updates."""
+def _warmup_ollama(agent: AdmissionsAgent) -> None:
+    """Load the configured model and ask Ollama to keep it resident for 24 hours."""
+    payload = json.dumps({
+        "model": agent.model_name,
+        "prompt": "",
+        "stream": False,
+        "keep_alive": KEEP_ALIVE,
+    }).encode("utf-8")
+    request = Request(
+        f"{agent.base_url}/api/generate",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
     try:
-        messages = [line.strip() for line in SPINNER_FILE.read_text(encoding="utf-8").splitlines() if line.strip()]
-    except OSError:
-        messages = []
-    return messages or ["Searching sources and checking evidence..."]
+        with urlopen(request, timeout=300) as response:
+            response.read()
+    except HTTPError as error:
+        detail = error.read().decode("utf-8", errors="replace")
+        raise AdmissionsAgentError(f"Ollama warmup failed with HTTP {error.code}: {detail}") from error
+    except (TimeoutError, URLError) as error:
+        raise AdmissionsAgentError(f"Could not warm up Ollama at {agent.base_url}: {error}") from error
 
 
 def _run_with_status(
@@ -42,28 +59,29 @@ def _run_with_status(
         except Exception as error:  # Keep UI errors visible instead of losing the worker result.
             result.put(("error", str(error)))
 
-    messages = _load_spinner_messages()
-    last_message: str | None = None
-
-    def next_message() -> str:
-        nonlocal last_message
-        choices = [message for message in messages if message != last_message] or messages
-        last_message = random.choice(choices)
-        return last_message
-
     status_area.info("Starting research...")
     worker = threading.Thread(target=run_agent, daemon=True)
     worker.start()
+    model_started_at: float | None = None
+    last_elapsed_update = 0.0
 
     while worker.is_alive():
         try:
-            event, value = events.get(timeout=0.1)
+            event, value = events.get(timeout=0.25)
         except queue.Empty:
+            if model_started_at is not None:
+                elapsed = time.monotonic() - model_started_at
+                if elapsed - last_elapsed_update >= 1:
+                    status_area.info(f"Ollama is processing the prompt… {int(elapsed)}s elapsed")
+                    last_elapsed_update = elapsed
             continue
 
         if event == "llm_start":
-            status_area.info(next_message())
+            model_started_at = time.monotonic()
+            last_elapsed_update = 0.0
+            status_area.info("Ollama is processing the prompt… 0s elapsed")
         elif event == "tool_start":
+            model_started_at = None
             status_area.info(f"Running tool: {value or 'research tool'}")
         elif event == "tool_end":
             status_area.empty()
@@ -86,6 +104,16 @@ if "admissions_agent" not in st.session_state:
     except AdmissionsAgentError as error:
         st.error(str(error))
         st.stop()
+
+if "ollama_warmed" not in st.session_state:
+    with st.spinner("Warming up Ollama (the model will stay loaded for 24 hours)…"):
+        try:
+            _warmup_ollama(st.session_state.admissions_agent)
+            st.session_state.ollama_warmed = True
+            st.success("Ollama is ready; the model will stay loaded for 24 hours.")
+        except AdmissionsAgentError as error:
+            st.session_state.ollama_warmed = False
+            st.warning(f"Ollama warmup did not complete: {error}. The first question will retry model loading.")
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
