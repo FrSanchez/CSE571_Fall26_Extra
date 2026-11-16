@@ -26,7 +26,7 @@ def test_search_returns_duckduckgo_results_with_jina_content(monkeypatch: pytest
         def text(self, query: str, max_results: int, backend: str) -> list[dict[str, str]]:
             assert query == "example query"
             assert max_results == 3
-            assert backend == "duckduckgo"
+            assert backend == "auto"
             return [
                 {
                     "title": "Example Result",

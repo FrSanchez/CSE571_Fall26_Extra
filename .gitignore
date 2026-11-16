@@ -12,3 +12,4 @@ coverage.xml
 *.log
 .env
 runs/
+.python-version

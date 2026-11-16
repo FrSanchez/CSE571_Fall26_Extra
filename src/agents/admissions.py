@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 import json
 import os
 from pathlib import Path
+import re
 import sys
 from typing import Any, Callable
 
@@ -19,10 +20,58 @@ DEFAULT_OLLAMA_MODEL = "qwen3:8b"
 MAX_GRAPH_STEPS = 50
 TRACE_DIR = Path("runs")
 SYSTEM_PROMPT_PATH = Path(__file__).with_name("system_prompt.md")
+_STOP_WORDS = {
+    "a",
+    "an",
+    "and",
+    "can",
+    "for",
+    "how",
+    "i",
+    "in",
+    "of",
+    "the",
+    "to",
+    "what",
+    "with",
+}
 
 
 class AdmissionsAgentError(Exception):
     """Raised for invalid questions or failures from the research agent."""
+
+
+def _relevant_source_excerpts(question: str, content: str, limit: int = 4) -> list[str]:
+    """Select short, exact page passages related to the question for a transparent fallback."""
+    terms = {term for term in re.findall(r"[a-z0-9]+", question.casefold()) if term not in _STOP_WORDS}
+    keywords = set(terms)
+    if terms.intersection({"cs", "computer", "degree"}):
+        keywords.discard("cs")
+        keywords.update({"computer science", "engineering"})
+    if terms.intersection({"enroll", "apply", "application", "admission"}):
+        keywords.update({"apply", "application", "admission", "first-year"})
+    if "computer science" in keywords:
+        keywords.update({"minimum", "sat", "act", "abor gpa", "math and science"})
+
+    ranked: list[tuple[int, int, str]] = []
+    for position, chunk in enumerate(re.split(r"\n\s*\n", content)):
+        excerpt = " ".join(chunk.split())
+        lowered = excerpt.casefold()
+        if len(excerpt) < 25 or len(excerpt) > 1100:
+            continue
+        if sum(excerpt.count(marker) for marker in ("](", "http://", "https://")) > 2:
+            continue
+        if any(marker in lowered for marker in ("cookie", "privacy settings", "accept all", "skip to main")):
+            continue
+        score = sum(lowered.count(keyword) for keyword in keywords)
+        if score:
+            ranked.append((score, position, excerpt[:700]))
+
+    selected = sorted(
+        sorted(ranked, key=lambda item: (-item[0], item[1]))[:limit],
+        key=lambda item: item[1],
+    )
+    return [excerpt for _, _, excerpt in selected]
 
 
 class AgentStatusCallbackHandler(BaseCallbackHandler):
@@ -103,10 +152,118 @@ class AdmissionsAgent:
             self._write_trace(question, "", research_tools, trace_path, error=str(error))
             raise AdmissionsAgentError(f"Admissions research failed: {error}") from error
 
+        search_actions = [action for action in research_tools.trace if action.get("action") == "web_search"]
+        if search_actions and not research_tools.evidence:
+            retrieved_pages = [
+                page
+                for page in research_tools.pages.values()
+                if isinstance(page, dict) and page.get("content") and page.get("url")
+            ]
+            if retrieved_pages:
+                recovery_prompt = (
+                    "Your previous turn retrieved readable page content but saved no evidence. Continue from the "
+                    "retrieved page messages already in this conversation; do not search again. Before answering, "
+                    "call save_evidence using a short exact passage copied from a retrieved page and a claim relevant "
+                    "to the original question. Then call list_evidence. If the pages do not support an answer, save "
+                    "an insufficient record from a relevant exact passage and explain what remains unknown."
+                )
+                try:
+                    recovery_result = graph.invoke(
+                        {"messages": [*result.get("messages", []), {"role": "user", "content": recovery_prompt}]},
+                        config={"recursion_limit": 8, "callbacks": callbacks},
+                    )
+                    result = recovery_result
+                    research_tools.trace.append(
+                        {
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "action": "evidence_recovery_attempt",
+                            "evidence_saved": len(research_tools.evidence),
+                        }
+                    )
+                except Exception as error:
+                    research_tools.trace.append(
+                        {
+                            "timestamp": datetime.now(timezone.utc).isoformat(),
+                            "action": "evidence_recovery_error",
+                            "error": str(error),
+                        }
+                    )
+
+            if research_tools.evidence:
+                search_actions = []
+
+        if search_actions and not research_tools.evidence:
+            errors = list(dict.fromkeys(str(action["error"]) for action in search_actions if action.get("error")))
+            successful_searches = [action for action in search_actions if action.get("results")]
+            has_search_results = bool(successful_searches)
+            retrieved_pages = [
+                page
+                for page in research_tools.pages.values()
+                if isinstance(page, dict) and page.get("content") and page.get("url")
+            ]
+            if errors:
+                if successful_searches:
+                    cause = (
+                        f"{len(errors)} search attempt(s) failed ({'; '.join(errors[:2])}); "
+                        "another search returned results."
+                    )
+                else:
+                    cause = "Search tool error(s): " + "; ".join(errors[:3])
+            elif has_search_results and not retrieved_pages:
+                cause = "Search returned result links, but no pages were retrieved for evidence."
+            elif retrieved_pages:
+                cause = "Pages were retrieved, but no supporting evidence was saved."
+            else:
+                cause = "The search tool returned no usable results."
+            answer = (
+                f"I couldn't produce a complete evidence-backed answer. I made {len(search_actions)} search "
+                f"attempt(s), retrieved {len(retrieved_pages)} page(s), and saved no evidence because the model "
+                f"did not record a supporting passage. {cause}"
+            )
+            if retrieved_pages:
+                answer += (
+                    "\n\nExact excerpts from the pages retrieved "
+                    "(the agent did not save these as evidence records):"
+                )
+                for page in retrieved_pages:
+                    title = str(page.get("title") or page["url"]).replace("]", "\\]")
+                    excerpts = _relevant_source_excerpts(question, str(page.get("content", "")))
+                    answer += f"\n\n[{title}]({page['url']})"
+                    if excerpts:
+                        answer += "\n" + "\n".join(f"> {excerpt}" for excerpt in excerpts)
+                    else:
+                        answer += "\nNo relevant excerpt could be selected from this page."
+            else:
+                answer += " No pages were retrieved, so there is no source text to show."
+            research_tools.trace.append(
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "action": "research_incomplete",
+                    "error": errors[0] if errors else "No evidence was saved",
+                }
+            )
+            research_tools.trace.append(
+                {
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "action": "final_answer",
+                    "answer": answer,
+                }
+            )
+            self._write_trace(question, answer, research_tools, trace_path)
+            return answer
+
         messages = result.get("messages", [])
         answer = str(messages[-1].content).strip() if messages else ""
         if not answer:
-            raise AdmissionsAgentError("The agent returned an empty answer.")
+            if research_tools.evidence:
+                answer = "The model did not compose a final response. Here is the evidence it saved:\n\n"
+                answer += "\n".join(
+                    f'- {record.get("claim", "")} “{record.get("supporting_quote", "")}” '
+                    f'[{record.get("source_title") or record.get("url")}]({record.get("url")})'
+                    for record in research_tools.evidence
+                )
+            else:
+                raise AdmissionsAgentError("The agent returned an empty answer and saved no evidence.")
         research_tools.trace.append(
             {
                 "timestamp": datetime.now(timezone.utc).isoformat(),

@@ -109,6 +109,7 @@ def test_agent_runs_graph_reports_status_and_writes_trace(monkeypatch: pytest.Mo
         "base_url": "http://ollama.test:11434",
         "temperature": 0,
         "request_timeout": 300,
+        'keep_alive': '24h',
     }
     assert mock_state["graph_arguments"]["model"] is mock_state["model"]
     assert mock_state["graph_arguments"]["system_prompt"] == "Test admissions system prompt"

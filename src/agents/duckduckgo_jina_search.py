@@ -57,7 +57,7 @@ class DuckDuckGoJinaSearchResults(BaseTool):
             raise ToolException("max_results must be between 1 and 20.")
 
         try:
-            web_results = DDGS().text(query, max_results=self.max_results, backend="duckduckgo")
+            web_results = DDGS().text(query, max_results=self.max_results, backend="auto")
         except DDGSException as error:
             raise ToolException(f"DuckDuckGo search failed: {error}.") from error
 

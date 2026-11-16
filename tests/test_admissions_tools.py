@@ -26,7 +26,7 @@ def test_web_search_returns_ranked_results_and_trace(monkeypatch: pytest.MonkeyP
         def text(self, query: str, max_results: int, backend: str) -> list[dict[str, str]]:
             assert query == "ASU first year admissions"
             assert max_results == research_module.MAX_RESULTS
-            assert backend == "duckduckgo"
+            assert backend == "auto"
             return [
                 {"title": "ASU Admissions", "href": "https://admission.asu.edu/", "body": "First-year criteria"},
                 {"title": "ASU Catalog", "href": "https://catalog.asu.edu/", "body": "Published policy"},

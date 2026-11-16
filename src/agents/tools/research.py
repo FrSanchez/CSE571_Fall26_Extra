@@ -25,6 +25,7 @@ class AdmissionsResearchTools:
 
     def __init__(self) -> None:
         self.searches = 0
+        self.consecutive_search_failures = 0
         self.retrievals = 0
         self.evidence: list[dict[str, Any]] = []
         self.trace: list[dict[str, Any]] = []
@@ -42,15 +43,29 @@ class AdmissionsResearchTools:
             query = query.strip()
             if not query:
                 return "Error: search query must not be empty."
+            if self.consecutive_search_failures >= 2:
+                error_message = "Searches paused after two consecutive backend errors."
+                self.trace.append(
+                    {
+                        "timestamp": self._now(),
+                        "action": "web_search",
+                        "query": query,
+                        "error": error_message,
+                        "skipped": True,
+                    }
+                )
+                return json.dumps({"error": error_message, "search_skipped": True})
             if self.searches >= MAX_SEARCHES:
                 return f"Search budget reached ({MAX_SEARCHES} calls)."
             self.searches += 1
             try:
-                raw_results = DDGS().text(query, max_results=MAX_RESULTS, backend="duckduckgo")
+                raw_results = DDGS().text(query, max_results=MAX_RESULTS, backend="auto")
             except DDGSException as error:
-                result = {"error": f"DuckDuckGo search failed: {error}"}
+                self.consecutive_search_failures += 1
+                result = {"error": f"Web search failed: {error}"}
                 self.trace.append({"timestamp": self._now(), "action": "web_search", "query": query, **result})
                 return json.dumps(result)
+            self.consecutive_search_failures = 0
             results = [
                 {
                     "rank": rank,
