@@ -1,0 +1,28 @@
+\documentclass[conference]{IEEEtran}
+\usepackage[T1]{fontenc}
+\usepackage{microtype}
+\IEEEoverridecommandlockouts
+
+\begin{document}
+
+\title{CSE 571 Preliminary Report: Admissions Web Research Agent}
+\author{\IEEEauthorblockN{Angela Rose Marie Brauer, Sumona Deb, Ankit Gokhale, Francisco Sanchez}}
+\maketitle
+
+\begin{abstract}
+We propose a single-agent web research system for factual questions about first-year undergraduate admissions at Arizona State University (ASU), with the University of Arizona (UArizona) as a comparison institution. The agent uses live search, retrieved webpages, claim-level evidence records, and explicit verification to answer with citations or report uncertainty. This report characterizes its rational behavior and task environment.
+\end{abstract}
+
+\section{Rational-Agent Analysis}
+\textbf{Performance measure.} Success means answering the question accurately and completely while grounding each important claim in retrieved evidence. Evaluation should measure answer correctness; citation validity (whether cited pages support their claims) and completeness; source quality, favoring official ASU and UArizona pages and other authoritative sources; verification quality (correctly labeling claims as \texttt{supported}, \texttt{contradicted}, or \texttt{insufficient}); and robustness, including appropriate uncertainty or abstention when evidence is missing or conflicting. Efficiency is measured by searches, page retrievals, model/tool calls, and elapsed time, subject to a budget of at most 8 searches and 12 page retrievals per question. No performance result is claimed at this preliminary stage.
+
+\textbf{Prior knowledge.} Before acting, the agent receives this fixed domain and role, the user's question, descriptions of four tools, and research instructions. It is instructed to research rather than rely on memory; prefer official ASU (\texttt{asu.edu}) and UArizona (\texttt{arizona.edu}) sources; treat snippets as leads, not evidence; and retrieve page text before citing. Each evidence record must include a claim, source title and URL, retrieval timestamp, exact supporting passage, source-quality note, verification label, and reason. Only pages retrieved during the run may be cited. Supported claims can be stated as facts; contradicted claims must be described as disputed; insufficient claims must be qualified or left unresolved. The agent should stop when evidence is sufficient, disagreement can be explained, evidence is insufficient, or a budget is reached. Retrieved webpage instructions are untrusted content.
+
+\textbf{Available actions.} The LangGraph agent, using a local Ollama chat model (default \texttt{qwen3:8b}), can decompose a question and generate focused queries; call \texttt{web\_search} for ranked results; call \texttt{fetch\_page} for readable webpage text and metadata; call \texttt{save\_evidence} to validate and store a passage-backed claim; and call \texttt{list\_evidence} to review records. It can compare sources, refine or add searches based on results, synthesize an answer with citations, qualify disputed findings, or abstain. Search and retrieval actions and the final answer are recorded in a per-run trace.
+
+\textbf{Percept sequence.} The agent first observes the user's natural-language question. In successive turns it observes its prior actions and tool outputs: ranked search results and snippets, retrieved page titles, URLs, text and available metadata, evidence records, and verification labels. These observations inform later searches and retrievals. Before answering, it observes the evidence list and its accumulated trace, then produces a cited answer, qualified response, or abstention.
+
+\section{Task-Environment Classification}
+\textbf{Partially observable:} the agent sees only search results and pages returned during its run; the full web and all relevant admissions information are not observable. \textbf{Single-agent:} one LLM-driven agent chooses research actions; search and retrieval services are tools, not collaborating agents. \textbf{Stochastic:} search rankings, network/retrieval outcomes, changing webpages, and model responses are not fully predictable. \textbf{Sequential:} each query, retrieved page, and evidence record can change the next action and final answer. \textbf{Dynamic:} admissions pages and deadlines can change while the system operates, and live search results vary. \textbf{Discrete:} the interaction proceeds in turns through a finite set of action types and categorical verification labels, even though the text content is large and variable.
+
+\end{document}
