@@ -9,3 +9,7 @@ build/
 dist/
 coverage.xml
 .coverage
+*.log
+.env
+runs/
+.python-version
